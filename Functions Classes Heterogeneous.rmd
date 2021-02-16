@@ -1,0 +1,179 @@
+---
+title: "Functions Classes Heterogeneous"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+# Function
+
+```{r}
+f = function(x) x^2
+f(2)
+a=1
+f(a)
+f(f(a+1))
+
+g = function(x){
+  f=function(x) x^3
+  return(f(x))
+}
+g(2)
+f(2)
+
+
+h = function(x,FUN = f){
+  FUN(x)
+}
+h(2)
+h(2,g)
+# better way
+
+plot(1:3,2:4)
+
+fplot = function(x,y) plot(x,y)
+fplot(1:3,2:4)
+
+#create_fplot = function(data,FUN = fplot) FUN(data)
+create_fplot = function(data,FUN = fplot) do.call(FUN,data)
+
+create_fplot(list(x=1:3,y = 2:4))
+
+do.call(plot,list(x=1:3,2:4))
+
+```
+
+
+# Classes Hetergenous
+
+```{r}
+plot
+plot(1:3,2:4)
+
+
+x=1:3;y = 2:4
+plot(y~x)
+my_data=data.frame(x=1:3,y = 2:4)
+knitr::kable(my_data)
+plot(my_data)
+?plot
+plot.default
+class(y~x)
+
+#S3 S4(bioinformatics) R6
+
+my_object = list(x=1:3,y = 2:4)
+typeof(my_object)
+class(my_object)
+
+class(my_object) = "whatever"
+
+typeof(my_object)
+class(my_object)
+
+class(my_object) = c("my_whatever","whatever","list")
+class(my_object)
+
+
+
+print(my_object)
+
+#OOP
+print.my_whatever = function(x){
+  print("This is mine!")
+  print(x$x)
+  print(x$y)
+  NextMethod()
+}
+print.whatever = function(x){
+  print("This is whatever!")
+  print(x$x)
+  print(x$y)
+  NextMethod()
+}
+print(my_object)
+print.default
+
+
+
+fn = function(x) UseMethod("fn")#S3
+
+fn.default = function(x) x$x*x$y
+fn(list(x=1:3,y = 2:4))
+fn(my_object)
+
+fn.my_whatever = function(x) x$x*rev(x$y)
+fn(my_object)
+fn.my_whatever(my_object)
+fn.default(my_object)
+
+
+my_another_obj = list(x=1,y=2)
+class(my_another_obj) = c("my_whatever","whatever","list")
+
+
+my_whatever = function(x,y){
+  re = list(x=x,y=y)
+  class(re) = c("my_whatever","whatever","list")
+  re
+}#init
+fn(my_whatever(1:3,2:4))
+
+```
+
+
+# In packages
+
+
+```
+fn = function(x) UseMethod("fn")#S3
+
+somepackage::fn()
+
+
+
+```
+
+In your NAMESPACE file
+should have
+
+```
+S3method(takein, Constraint)
+```
+see https://github.com/HaoLi111/rAviExp/blob/master/NAMESPACE
+for an example
+
+
+# S3 Operators
+
+```{r}
+
+my_object
+
+
+"%+%" = function(a,b) my_whatever(a$x+b$x,a$y+b$y)
+my_object %+% my_object
+```
+
+# some more 
+
+
+```{r}
+gn = function(a,...) UseMethod("gn")
+gn.my_whatever = function(a,b,multiplier =1) my_whatever(multiplier*a$x+multiplier*b$x,multiplier*a$y+multiplier*b$y)
+gn(my_object,my_object)
+gn(my_object,my_object,2)
+```
+
+
+
+
+
+
+
+
+
+

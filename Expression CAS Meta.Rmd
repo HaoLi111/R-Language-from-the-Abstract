@@ -1,0 +1,151 @@
+---
+title: "Expression CAS Meta"
+author: "Hao Li"
+date: "2/12/2021"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+https://github.com/HaoLi111/Mathematical-Modeling-R-Sample-Code
+to see Ryacas in math modeling.
+
+# Components of function
+
+```{r}
+f=function(x) x^2
+
+f(2)
+f
+
+```
+
+
+```{r}
+
+g = function(x) x*x
+g
+
+body(f)
+body(g)
+formals(f)
+formals(g)
+h = function(y) y^2
+formals(h)
+
+body(f) = expression(x^2-1)
+f(2)
+
+
+formals(f) = list(y=1)
+f
+body(f) = expression(y^2-1)
+f(2)
+
+
+?as.expression
+expression(x^3-2+3)
+#from
+
+parse(text = "x^3-2+3")
+
+
+change_function_body = function(FUN,texts){
+  body(FUN) = parse(text = texts)
+  return(FUN)
+}
+
+f=function(x) x^2
+g = change_function_body(f,"x^3-2")
+g
+change_function_formals = function(FUN,l){
+  formals(FUN) = l
+  return(FUN)
+}
+
+```
+
+
+```{r}
+?D
+
+y = expression(3*x+2)
+dydx = deriv(y,"x")
+dydx
+typeof(dydx)
+class(dydx)
+x=3
+eval(y)
+eval(dydx)
+
+
+dydx2 = deriv(y,"x", func = TRUE)
+dydx2
+
+dydx2(3)
+```
+
+
+```{r}
+library(Ryacas)
+y=expression(x^2-1)
+as.character(y)
+yac(paste0("Solve(",as.character(y),",x)"),rettype = "expr")
+
+
+solve.expression =function(x,dep){ yac(paste0("Solve(",as.character(x),",",dep,")"),rettype = "expr")
+}
+solve(y,expression(x))
+```
+
+```{r}
+
+
+w<-expression(200+5*t1)
+yac_assign(w,"w")
+
+p<-expression(0.65-0.01*t1)
+yac_assign(p,"p")
+C<-expression(0.45*t1)
+yac_assign(C,"C")
+R<-expression(p*w)
+yac_assign(R,"R")
+P<-expression(R-C)
+yac_assign(P,"P")
+
+P = yac("P",rettype = "expr")
+P
+
+dPdt = yac(paste0("D(","t1",")", as.character(P)),rettype = "expr")
+d2Pdt2 = yac(paste0("D(","t1",")", as.character(dPdt)),rettype = "expr")
+
+sln = yac(paste0("Solve(",dPdt,",t1)"),rettype = "str")
+sln
+l = nchar(sln)
+l
+sln_str = gsub("==","=",substr(sln,2,l-1))
+sln_expr = parse(text = sln_str)
+sln_expr
+
+
+eval(sln_expr)
+eval(P)
+eval(dPdt)
+eval(d2Pdt2)
+
+
+```
+
+```{r}
+write_a_function = function(fn_name,fn_par,fn_body){
+  re = paste0(fn_name," = function(",fn_par,") ",fn_body)
+  return(parse(text = re))
+  
+}
+
+eval(write_a_function("f","x","-x^2"))
+f
+```

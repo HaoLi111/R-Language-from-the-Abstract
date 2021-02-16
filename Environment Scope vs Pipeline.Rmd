@@ -1,0 +1,146 @@
+---
+title: "Environment Scope vs Pipeline"
+author: "Hao Li"
+date: "2/13/2021"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Function
+
+```{r}
+x=1
+x
+f = function(){
+  x = 2
+  return(x)
+}
+f()
+x<-1
+a<-b<-g<-h<-1
+a
+b
+g
+h
+
+f = function(){
+  x<<-2
+  return(x)
+}
+f()
+x
+
+
+g = function(){
+  getAnywhere("x")
+}
+value_of_x = g()
+
+my_list = list(x=1)
+my_list["x"]
+my_list["x"] = 2
+#my_list = assign my list
+
+getAnywhere(t.test)
+#t.test.default
+getAnywhere(t.test.default)
+#get(t.test.default,envir = stats)
+
+h =function(){
+  get("x",envir = .GlobalEnv)
+}
+
+h()
+
+?assign
+f = function(){
+  assign("x",2,envir = .GlobalEnv)
+  #return()
+}
+f()
+x
+```
+
+```
+install.packages()# need ""
+library()# don't need ""
+
+```
+
+# A comparison btw base R and tidyverse
+
+```{r}
+iris
+#Sepal.Length
+plot(iris,col = Species)
+
+plot(iris$Sepal.Length,iris$Petal.Length)# 1
+#formula
+plot(Petal.Length~Sepal.Length,data = iris)# 2
+expression(iris$Petal.Length)
+eval(expression(iris$Petal.Length))
+#parse()
+#someval
+deparse(substitute(someval))# 3
+with(iris,{plot(Sepal.Length,Petal.Length)})
+my_iris = within(iris,{Sepal.LengthDivByPetal.Length = Sepal.Length/Petal.Length})
+my_iris
+iris
+
+#4 
+
+attach(iris)
+Sepal.Length
+plot(Sepal.Length,Petal.Length)
+detach(iris)
+
+
+for(i in unique(iris$Species)){
+  
+print(mean(subset(subset(my_iris,Petal.Length > 1.2),Species == i)$Sepal.Length))
+  
+  }
+
+
+
+```
+
+# Tidyverse
+
+```{r}
+
+library(tidyverse)
+
+#Rtools devtools
+library(ggplot2)
+library(GGally)
+
+ggpairs(iris,aes(fill = Species))
+
+
+g = ggplot(iris,aes(x = Sepal.Length,y= Petal.Length)) +geom_point()
+g
+
+f =function(x) x^3
+f(x)
+x %>% f()
+
+
+
+my_iris2 = iris %>% mutate(Sepal.LengthDivByPetal.Length = Sepal.Length/Petal.Length)
+my_iris2
+
+
+my_iris3 = iris %>% mutate(Sepal.LengthDivByPetal.Length = Sepal.Length/Petal.Length) %>% filter(Petal.Length > 1.2) 
+my_iris3 %>% group_by(Species) %>% summarise(mean_Sepal.length = mean(Sepal.Length))
+
+
+```
+
+
+https://github.com/HaoLi111/StatsReportTemplates/blob/main/Exploratory_Analysis_Formal.Rmd
+
+https://github.com/HaoLi111/StatsReportTemplates/blob/main/Predictive%20models%20with%20caret.Rmd
